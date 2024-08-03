@@ -1,0 +1,61 @@
+import pandas as pd
+import re
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+import pickle
+
+# Function to clean text
+def clean_text(txt):
+    clean_text = re.sub('http\S+\s', ' ', txt)
+    clean_text = re.sub('RT|cc', ' ', clean_text)
+    clean_text = re.sub('#\S+\s', ' ', clean_text)
+    clean_text = re.sub('@\S+', '  ', clean_text)
+    clean_text = re.sub('[%s]' % re.escape("""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""), ' ', clean_text)
+    clean_text = re.sub(r'[^\x00-\x7f]', ' ', clean_text)
+    clean_text = re.sub('\s+', ' ', clean_text)
+    return clean_text
+
+# Load dataset
+dataFrame = pd.read_csv("dataset/UpdatedResumeDataSet.csv")
+
+# Clean resume text
+dataFrame['Clean_Resume'] = dataFrame['Resume'].apply(clean_text)
+
+# Encode the 'Category' column
+le = LabelEncoder()
+dataFrame['Category'] = le.fit_transform(dataFrame['Category'])
+
+# Initialize TF-IDF vectorizer
+word_vectorizer = TfidfVectorizer(sublinear_tf=True, stop_words='english', max_features=1500)
+
+# Fit the vectorizer on the entire dataset
+WordFeatures = word_vectorizer.fit_transform(dataFrame['Clean_Resume'])
+
+# Split data into features and target
+X = WordFeatures
+y = dataFrame['Category'].values
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0, test_size=0.2)
+
+# Initialize and train the KNN model
+model = KNeighborsClassifier()
+model.fit(X_train, y_train)
+
+# Make predictions on test set
+print("Accuracy on test set:", model.score(X_test, y_test))
+
+pickle_out = open("model.pkl", 'wb')
+pickle.dump(model, pickle_out)
+pickle_out.close()
+
+# Save the trained model and label encoder
+joblib.dump(model, 'knn_model.joblib')
+joblib.dump(le, 'label_encoder.joblib')
+import joblib
+
+# Save the TF-IDF vectorizer
+joblib.dump(word_vectorizer, 'tfidf_vectorizer.joblib')
