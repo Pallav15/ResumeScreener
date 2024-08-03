@@ -7,3 +7,11 @@ Library PyresParser
 node js
 Few ML related Libraries
 Steps to Run the Project Download the zip or clone the repository. Open in any IDE, preferably VS CODE. So it contains two parts: Frontend and Backend. In the backend, change the location of the Data folder as it contains the Resume for testing purposes. First, run your Backend and then Frontend.
+Run the backend code of app.py
+
+Technology Used:
+Node js
+Machine Learning
+PyresParser
+Python
+
